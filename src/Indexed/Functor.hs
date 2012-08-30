@@ -3,6 +3,8 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 module Indexed.Functor
   ( IFunctor(..)
   , (>$<)
@@ -11,7 +13,7 @@ module Indexed.Functor
 
 import Indexed.Types
 
-class IFunctor f where -- (f :: (k -> *) -> k -> *) where
+class IFunctor (f :: (k -> *) -> k -> *) | f -> k where
   imap :: (a ~> b) -> f a ~> f b
   (>$) :: (forall i. b i) -> f a ~> f b
   b >$ f = imap (const b) f

@@ -16,7 +16,7 @@ import Indexed.Functor
 import Indexed.Applicative
 import Indexed.Monad
 
-class IMonad m => IMonadFree f m | m -> f where
+class IMonad m => IMonadFree (f :: (i -> *) -> i -> *) (m :: ((i -> *) -> i -> *) -> (i -> *) -> i -> *) | m -> f i where
   ifree :: f (m a) ~> m a
 
 data Free f a i where -- :: ((i -> *) -> i -> *) -> (i -> *) -> i -> *

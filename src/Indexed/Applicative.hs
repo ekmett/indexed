@@ -1,6 +1,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FunctionalDependencies #-}
 module Indexed.Applicative
   ( IApplicative(..)
   ) where
@@ -10,7 +11,7 @@ import Indexed.Functor
 
 infixl 4 >*<, >*, *<
 
-class IFunctor f => IApplicative f where
+class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) | f -> k where
   ipure :: a -> f (At a i) i
   (>*<) :: f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
 

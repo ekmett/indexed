@@ -3,6 +3,8 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 module Indexed.Monad
   ( IMonad(..)
   , (>~>)
@@ -17,7 +19,7 @@ import Indexed.Types
 import Indexed.Functor
 import Indexed.Applicative
 
-class IApplicative m => IMonad m where
+class IApplicative m => IMonad (m :: (k -> *) -> k -> *) | m -> k where
   ireturn :: a ~> m a
   ibind   :: (a ~> m b) -> m a ~> m b
   ijoin   :: m (m a) ~> m a
