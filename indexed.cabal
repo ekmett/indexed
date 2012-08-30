@@ -1,0 +1,67 @@
+name:          indexed
+category:      Data
+version:       0.1
+license:       BSD3
+cabal-version: >= 1.8
+license-file:  LICENSE
+author:        Edward A. Kmett
+maintainer:    Edward A. Kmett <ekmett@gmail.com>
+stability:     provisional
+homepage:      http://github.com/ekmett/indexed/
+bug-reports:   http://github.com/ekmett/indexed/issues
+copyright:     Copyright (C) 2012 Edward A. Kmett
+synopsis:      Kinds
+description:
+
+build-type:    Simple
+tested-with:   GHC == 7.6.0
+extra-source-files:
+  .ghci
+  .gitignore
+  .vim.custom
+  README.markdown
+  CHANGELOG.markdown
+
+source-repository head
+  type: git
+  location: git://github.com/ekmett/indexed.git
+
+library
+  build-depends: base >= 4.6 && < 5
+
+  exposed-modules:
+    Indexed.Command
+    Indexed.Comonad
+    Indexed.Coproduct
+    Indexed.Foldable
+    Indexed.Functor
+    Indexed.Monad
+    Indexed.Monad.Free
+    Indexed.Monoid
+    Indexed.Product
+    Indexed.Thrist
+    Indexed.Traversable
+    Indexed.Types
+
+--    Indexed.Comonad.Cofree
+--    Indexed.Comonad.Store
+--
+--    Indexed.Composition
+--    Indexed.Monad.Free
+--    Indexed.Monad.State
+  if impl(ghc<=7.6)
+    buildable: False
+
+  ghc-options: -Wall -fwarn-tabs -O2 -fdicts-cheap -funbox-strict-fields
+  hs-source-dirs: src
+
+test-suite doctests
+  type:    exitcode-stdio-1.0
+  main-is: doctests.hs
+  build-depends:
+    base == 4.*,
+    directory >= 1.0 && < 1.2,
+    doctest >= 0.8 && <= 0.9,
+    filepath >= 1.3 && < 1.4
+  ghc-options: -Wall -Werror -threaded
+  hs-source-dirs: tests
