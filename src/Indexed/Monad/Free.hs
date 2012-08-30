@@ -13,6 +13,7 @@ module Indexed.Monad.Free
 
 import Indexed.Types
 import Indexed.Functor
+import Indexed.Applicative
 import Indexed.Monad
 
 class IMonad m => IMonadFree f m | m -> f where
@@ -25,6 +26,10 @@ data Free f a i where -- :: ((i -> *) -> i -> *) -> (i -> *) -> i -> *
 instance IFunctor f => IFunctor (Free f) where
   imap f (Return a) = Return (f a)
   imap f (Free as)  = Free (imap (imap f) as)
+
+instance IFunctor f => IApplicative (Free f) where
+  ipure = ireturnAt
+  (>*<) = iap
 
 instance IFunctor f => IMonad (Free f) where
   ireturn = Return
@@ -42,6 +47,10 @@ newtype Church
 
 instance IFunctor (Church f) where
   imap f (Church m) = Church $ \kp -> m (kp . f)
+
+instance IApplicative (Church f) where
+  ipure = ireturnAt
+  (>*<) = iap
 
 instance IMonad (Church f) where
   ireturn a = Church $ \k _ -> k a

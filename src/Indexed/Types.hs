@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
@@ -22,10 +21,6 @@ module Indexed.Types
   , symm
   -- * Type Equality
   , ($)()
-  -- * Constraint Kinds
-  , (|-)(Sub)
-  , Dict(Dict)
-  , (\\)
   ) where
 
 import Control.Category
@@ -196,17 +191,3 @@ infixr 0 $
 -- | A type level version of @($)@, useful to avoid parentheses
 type ($) a = a
 
--------------------------------------------------------------------------------
--- Constraint Kinds
--------------------------------------------------------------------------------
-
--- | A dictionary for a constraint
-data Dict p where Dict :: p => Dict p
-
-infixr 0 |-
--- | Entailment of constraints
-newtype p |- q = Sub (p => Dict q)
-
--- | Substitution of constraints
-(\\) :: p => (q => r) -> (p |- q) -> r
-r \\ Sub Dict = r

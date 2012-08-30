@@ -19,24 +19,23 @@ import Indexed.Types
 infixr 5 :-
 -- A Thrist.
 data Thrist :: ((i,i) -> *) -> (i,i) -> * where
-  Nil :: Thrist g '(i,i)
-  (:-) :: g '(i,j) -> Thrist g '(j,k) -> Thrist g '(i,k)
+  Nil :: Thrist a '(i,i)
+  (:-) :: a '(i,j) -> Thrist a '(j,k) -> Thrist a '(i,k)
 
 instance IFunctor Thrist where
   imap _ Nil = Nil
   imap f (r :- rs) = f r :- imap f rs
 
 instance IApplicative Thrist where
-  -- ipure a          = At a :- Nil
-  --Nil       >*< _  = Nil
-  --(f :- fs) >*< as = imap f as >< (fs >*< as)
+  ipure = ireturnAt
+  (>*<) = iap
 
 instance IMonad Thrist where
   -- ireturn a = a :- Nil
   ibind _ Nil = Nil
   ibind f (a :- as) = f a >< ibind f as
 
-type Unitary k a = k (At a '((),())) '((),())
+type Unitary k a = k (At a '( '(), '())) '( '(), '())
 
 type List a = Unitary Thrist a
 
@@ -50,4 +49,5 @@ instance IFoldable Thrist where
   ifoldMap f (a :- as) = f a >< ifoldMap f as
 
 --instance ITraversable Thrist where
---  imapM f Nil = ireturn Nil
+ -- imapM f Nil = ireturn Nil
+ -- imapM f (a :- as) = imap (:-)

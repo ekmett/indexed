@@ -1,5 +1,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 module Indexed.Product
   ( (*)(..)
   , ifst
@@ -8,8 +10,8 @@ module Indexed.Product
 
 import Indexed.Functor
 import Indexed.Types
--- import Indexed.Foldable
--- import Indexed.Monoid
+import Indexed.Foldable
+import Indexed.Monoid
 
 data (f * g) a i = f a i :* g a i
 
@@ -28,3 +30,12 @@ instance (IFunctor f, IFunctor g) => IFunctor (f * g) where
 -- instance ITraversable f, ITraversabe g) = ITraversable (f * g) where
 
 -- isntance (IMonad f, IMonad g) => IMonad (f * g) where
+
+data (&) :: (((k,k) -> *) -> (k,k) -> *) -> (((k,k) -> *) -> (k,k) -> *) -> ((k,k) -> *) -> (k,k) -> * where
+  (:&) :: f a '(i,j) -> g a '(j,k) -> (f & g) a '(i,k)
+
+instance (IFunctor f, IFunctor g) => IFunctor (f & g) where
+  imap f (a :& b) = imap f a :& imap f b
+
+instance (IFoldable f, IFoldable g) => IFoldable (f & g) where
+  ifoldMap f (a :& b) = ifoldMap f a >< ifoldMap f b

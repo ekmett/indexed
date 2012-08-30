@@ -2,6 +2,7 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
 module Indexed.Monad
   ( IMonad(..)
   , (>~>)
@@ -9,12 +10,14 @@ module Indexed.Monad
   , (?>=)
   , (!>=)
   , ireturnAt
+  , iap
   ) where
 
 import Indexed.Types
 import Indexed.Functor
+import Indexed.Applicative
 
-class IFunctor m => IMonad m where
+class IApplicative m => IMonad m where
   ireturn :: a ~> m a
   ibind   :: (a ~> m b) -> m a ~> m b
   ijoin   :: m (m a) ~> m a
@@ -35,3 +38,6 @@ m !>= f = m ?>= \ (At a) -> f a
 
 ireturnAt :: IMonad m => a -> m (At a i) i
 ireturnAt a = ireturn (At a)
+
+iap :: IMonad m => m (At (a -> b) j) i -> m (At a k) j -> m (At b k) i
+iap mf ma = mf !>= \f -> ma !>= \a -> ireturnAt (f a)
