@@ -29,19 +29,19 @@ instance IFunctor Thrist where
 
 instance IMonad Thrist where
   ireturn a = a :- Nil -- we can't determine the correct kind without kind constraints
-  ibind _ Nil = Nil
-  ibind f (a :- as) = f a >< ibind f as
+  -- ibind _ Nil = Nil
+  -- ibind f (a :- as) = f a >< ibind f as
 
 type Unitary k a = k (At a '( '(), '())) '( '(), '())
 
 type List a = Unitary Thrist a
 
 instance IMonoid (Thrist a) where
-  imempty = Nil
-  Nil      >< bs = bs
-  (a :- as) >< bs = a :- (as >< bs)
+  -- imempty = Nil
+  -- Nil      >< bs = bs
+  -- (a :- as) >< bs = a :- (as >< bs)
 
 instance IFoldable Thrist where
-  ifoldMap _ Nil = imempty
-  ifoldMap f (a :- as) = f a >< ifoldMap f as
+  -- ifoldMap _ Nil = imempty
+  -- ifoldMap f (a :- as) = f a >< ifoldMap f as
 
