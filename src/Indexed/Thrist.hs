@@ -17,17 +17,15 @@ import Unsafe.Coerce
 
 infixr 5 :-
 -- A Thrist.
--- data Thrist :: ((i,i) -> *) -> (i,i) -> * where
-data Thrist :: (((),()) -> *) -> ((),()) -> * where
+data Thrist :: ((i,i) -> *) -> (i,i) -> * where
   Nil :: Thrist a '(i,i)
-  -- (:-) :: a '(i,j) -> Thrist a '(j,k) -> Thrist a '(i,k)
   (:-) :: (Snd ij ~ Fst jk, Fst ij ~ Fst ik, Snd jk ~ Snd ik) => a ij -> Thrist a jk -> Thrist a ik
 
 instance IFunctor Thrist where
   imap _ Nil = Nil
   imap f (r :- rs) = f r :- imap f rs
 
-instance IApplicative Thrist
+-- instance IApplicative Thrist
 
 instance IMonad Thrist where
   ireturn a = a :- Nil -- we can't determine the correct kind without kind constraints

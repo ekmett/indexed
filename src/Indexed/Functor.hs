@@ -29,7 +29,7 @@ module Indexed.Functor
 
 import Indexed.Types
 
-class IFunctor (f :: (k -> *) -> k -> *) | f -> k where
+class IFunctor (f :: (k -> *) -> k -> *) where
   imap :: (a ~> b) -> f a ~> f b
   default imap :: IMonad f => (a ~> b) -> f a ~> f b
   imap f = ibind (ireturn . f)
@@ -47,7 +47,7 @@ imapAt f = imap (\(At a) -> At (f a))
 
 infixl 4 >*<, >*, *<
 
-class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) | f -> k where
+class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) where
   ipure :: a -> f (At a i) i
   default ipure :: IMonad f => a -> f (At a i) i
   ipure = ireturnAt
@@ -62,7 +62,7 @@ class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) | f -> k where
   (*<) :: f (At a j) i -> f (At b k) j -> f (At b k) i
   ma *< mb = imapAt (const id) ma >*< mb
 
-class IFunctor m => IMonad (m :: (k -> *) -> k -> *) | m -> k where
+class IFunctor m => IMonad (m :: (k -> *) -> k -> *) where
   ireturn :: a ~> m a
   ibind   :: (a ~> m b) -> m a ~> m b
   ijoin   :: m (m a) ~> m a
