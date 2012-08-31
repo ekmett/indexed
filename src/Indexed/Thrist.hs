@@ -11,27 +11,26 @@ module Indexed.Thrist
 import Indexed.Functor
 import Indexed.Monoid
 import Indexed.Foldable
-import Indexed.Applicative
-import Indexed.Monad
 import Indexed.Traversable
 import Indexed.Types
+import Unsafe.Coerce
 
 infixr 5 :-
 -- A Thrist.
-data Thrist :: ((i,i) -> *) -> (i,i) -> * where
+-- data Thrist :: ((i,i) -> *) -> (i,i) -> * where
+data Thrist :: (((),()) -> *) -> ((),()) -> * where
   Nil :: Thrist a '(i,i)
-  (:-) :: a '(i,j) -> Thrist a '(j,k) -> Thrist a '(i,k)
+  -- (:-) :: a '(i,j) -> Thrist a '(j,k) -> Thrist a '(i,k)
+  (:-) :: (Snd ij ~ Fst jk, Fst ij ~ Fst ik, Snd jk ~ Snd ik) => a ij -> Thrist a jk -> Thrist a ik
 
 instance IFunctor Thrist where
   imap _ Nil = Nil
   imap f (r :- rs) = f r :- imap f rs
 
-instance IApplicative Thrist where
-  ipure = ireturnAt
-  (>*<) = iap
+instance IApplicative Thrist
 
 instance IMonad Thrist where
-  -- ireturn a = a :- Nil
+  ireturn a = a :- Nil -- we can't determine the correct kind without kind constraints
   ibind _ Nil = Nil
   ibind f (a :- as) = f a >< ibind f as
 
@@ -48,6 +47,3 @@ instance IFoldable Thrist where
   ifoldMap _ Nil = imempty
   ifoldMap f (a :- as) = f a >< ifoldMap f as
 
---instance ITraversable Thrist where
- -- imapM f Nil = ireturn Nil
- -- imapM f (a :- as) = imap (:-)

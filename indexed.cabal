@@ -31,18 +31,19 @@ library
 
   exposed-modules:
     Indexed.Command
-    Indexed.Comonad
     Indexed.Constraints
-    Indexed.Coproduct
     Indexed.Foldable
     Indexed.Functor
-    Indexed.Monad
-    Indexed.Monad.Free
     Indexed.Monoid
-    Indexed.Product
     Indexed.Thrist
     Indexed.Traversable
     Indexed.Types
+
+--    Indexed.Monad
+--    Indexed.Comonad
+--    Indexed.Coproduct
+--    Indexed.Monad.Free
+--    Indexed.Product
 
   if impl(ghc<=7.6)
     buildable: False

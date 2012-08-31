@@ -7,8 +7,6 @@ module Indexed.Traversable
 
 import Indexed.Types
 import Indexed.Functor
-import Indexed.Monad
-import Indexed.Applicative
 
 -- | Minimum definition ('imapM' /and/ 'itraverse') or ('isequence' /and/ 'isequenceA').
 class IFunctor t => ITraversable t where

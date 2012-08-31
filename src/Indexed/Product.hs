@@ -32,7 +32,7 @@ instance (IFunctor f, IFunctor g) => IFunctor (f * g) where
 -- isntance (IMonad f, IMonad g) => IMonad (f * g) where
 
 data (&) :: (((k,k) -> *) -> (k,k) -> *) -> (((k,k) -> *) -> (k,k) -> *) -> ((k,k) -> *) -> (k,k) -> * where
-  (:&) :: f a '(i,j) -> g a '(j,k) -> (f & g) a '(i,k)
+  (:&) :: (Fst ij ~ Fst ik, Snd ij ~ Fst jk, Snd jk ~ Snd ik) => f a ij -> g jk -> (f & g) a ik
 
 instance (IFunctor f, IFunctor g) => IFunctor (f & g) where
   imap f (a :& b) = imap f a :& imap f b
