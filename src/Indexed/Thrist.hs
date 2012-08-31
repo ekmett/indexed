@@ -41,7 +41,7 @@ Nil       +++ bs = bs
 -- instance IApplicative Thrist
 
 instance IMonad Thrist where
-  ireturn a = a :- Nil -- we can't determine the correct kind without kind constraints
+  ireturn a = a :- Nil
   ibind _ Nil = Nil
   ibind f (a :- as) = herp (derp (f a) +++ derp (ibind f as))
 
