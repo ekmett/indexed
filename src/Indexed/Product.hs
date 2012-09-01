@@ -11,7 +11,7 @@ module Indexed.Product
 import Control.Applicative
 import Data.Monoid
 import Indexed.Functor
-import Indexed.Types
+-- import Indexed.Types
 import Indexed.Foldable
 import Indexed.Traversable
 import Indexed.Monoid
