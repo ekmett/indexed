@@ -39,7 +39,7 @@ infixr 1 >~>, <~<, ~>~, ~<~
 class IFunctor f where
   imap :: (a ~> b) -> f a ~> f b
 
-  (/$) :: (forall i. b i) -> f a ~> f b
+  (/$) :: Lim b -> f a ~> f b
   b /$ f = imap (const b) f
 
 (/$/) :: IFunctor f => (a ~> b) -> f a ~> f b
