@@ -3,21 +3,22 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Indexed.Functor
   ( IFunctor(..)
   , (>$<)
   , imapAt
-  , IApplicative(..)
+--  , IApplicative(..)
   , IMonad(..)
   , (>~>)
   , (<~<)
   , (?>=)
   , (!>=)
+  , iliftM
   , ireturnAt
   , IComonad(..)
   , (~>~)
@@ -25,14 +26,14 @@ module Indexed.Functor
   , (?=>)
 --  , (!=>)
   , iextractAt
+  , iliftW
   ) where
 
 import Indexed.Types
 
-class IFunctor (f :: (k -> *) -> k -> *) where
+-- | A 'Functor' between indexed categories.
+class IFunctor f where -- :: (i -> *) -> j -> *) where
   imap :: (a ~> b) -> f a ~> f b
-  default imap :: IMonad f => (a ~> b) -> f a ~> f b
-  imap f = ibind (ireturn . f)
 
   (>$) :: (forall i. b i) -> f a ~> f b
   b >$ f = imap (const b) f
@@ -41,16 +42,17 @@ infixl 4 >$<, >$
 (>$<) :: IFunctor f => (a ~> b) -> f a ~> f b
 (>$<) = imap
 
-imapAt :: IFunctor f => (a -> b) -> f (At a j) ~> f (At b j)
+imapAt :: IFunctor f => (a -> b) -> f (At a k) ~> f (At b k)
 imapAt f = imap (\(At a) -> At (f a))
 {-# INLINE imapAt #-}
 
+{-
 infixl 4 >*<, >*, *<
 
-class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) where
+class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) | f -> k where
   ipure :: a -> f (At a i) i
-  default ipure :: IMonad f => a -> f (At a i) i
-  ipure = ireturnAt
+ -- default ipure :: IMonad f => a -> f (At a i) i
+ -- ipure = ireturnAt
 
   (>*<) :: f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
   default (>*<) :: IMonad f => f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
@@ -61,8 +63,9 @@ class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) where
 
   (*<) :: f (At a j) i -> f (At b k) j -> f (At b k) i
   ma *< mb = imapAt (const id) ma >*< mb
+-}
 
-class IFunctor m => IMonad (m :: (k -> *) -> k -> *) where
+class IFunctor m => IMonad m where
   ireturn :: a ~> m a
   ibind   :: (a ~> m b) -> m a ~> m b
   ijoin   :: m (m a) ~> m a
@@ -79,13 +82,16 @@ f <~< g = ibind f . g
 (?>=) :: IMonad m => m a i -> (a ~> m b) -> m b i
 m ?>= f = ibind f m
 
-(!>=) :: IMonad m => m (At a j) i -> (a -> m b j) -> m b i
-m !>= f = m ?>= \ (At a) -> f a
+(!>=) :: IMonad (m :: (k -> *) -> k -> *) => m (At a j) i -> (a -> m b j) -> m b i
+m !>= f = m ?>= \ (At a :: At a j i) -> f a
 
 ireturnAt :: IMonad m => a -> m (At a i) i
 ireturnAt a = ireturn (At a)
 
-class IFunctor w => IComonad (w :: (k -> *) -> k -> *) | w -> k where
+iliftM :: IMonad m => (a ~> b) -> m a ~> m b
+iliftM f = ibind (ireturn . f)
+
+class IFunctor w => IComonad w where
   iextract :: w a ~> a
   iextend :: (w a ~> b) -> w a ~> w b
   iduplicate :: w a ~> w (w a)
@@ -101,8 +107,11 @@ f ~<~ g = f . iextend g
 (?=>) :: IComonad w => w a i -> (w a ~> b) -> w b i
 w ?=> f = iextend f w
 
--- (!=>) :: IComonad w => w a i -> (w a j -> b) -> w (At b j) i
--- w !=> f = w ?=> (At . f)
+-- (!=>) :: forall w b a i j. IComonad (w :: (k -> *) -> k -> *) => w a i -> (w a j -> b) -> w (At b j) i
+-- w !=> f = w ?=> \ a -> At (f a)
 
 iextractAt :: IComonad w => w (At a i) i -> a
 iextractAt = key . iextract
+
+iliftW :: IComonad w => (a ~> b) -> w a ~> w b
+iliftW f = iextend (f . iextract)

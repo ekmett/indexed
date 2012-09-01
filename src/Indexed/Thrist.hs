@@ -18,17 +18,9 @@ import Unsafe.Coerce
 
 infixr 5 :-
 
--- derpendent types
-derp :: (Fst ij ~ i, Snd ij ~ j) => p ij -> p '(i,j)
-derp = unsafeCoerce
-
-herp :: (Fst ij ~ i, Snd ij ~ j) => p '(i,j) -> p ij
-herp = unsafeCoerce
-
--- A Thrist.
 data Thrist :: ((i,i) -> *) -> (i,i) -> * where
-  Nil :: Thrist a '(i,i)
-  (:-) :: (Fst ij ~ i, Snd ij ~ j, Fst ik ~ i, Snd ik ~ k) => a ij -> Thrist a '(j,k) -> Thrist a ik
+  Nil  :: Thrist a '(i,i)
+  (:-) :: a '(i,j) -> Thrist a '(j,k) -> Thrist a '(i,k)
 
 instance IFunctor Thrist where
   imap _ Nil = Nil
@@ -41,7 +33,7 @@ Nil       +++ bs = bs
 -- instance IApplicative Thrist
 
 instance IMonad Thrist where
-  ireturn a = a :- Nil
+  ireturn a = herp (derp a :- Nil)
   ibind _ Nil = Nil
   ibind f (a :- as) = herp (derp (f a) +++ derp (ibind f as))
 
@@ -57,3 +49,6 @@ instance IFoldable Thrist where
   ifoldMap _ Nil = imempty
   ifoldMap f (a :- as) = herp (derp (f a) >< derp (ifoldMap f as))
 
+instance ITraversable Thrist where
+  imapM _ Nil = ireturn Nil
+  -- imapM f (a :- as) = f (herp a) ?>= \b -> undefined -- imapM f as ?>= \bs -> ireturn (b :- bs)

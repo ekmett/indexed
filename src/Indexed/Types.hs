@@ -13,6 +13,7 @@ module Indexed.Types
   , (:~>)(Nat,($$))
   -- * Product Kind Projections
   , Fst, Snd
+  , herp, derp
   -- * Atkey
   , At(At), key
   , Atkey
@@ -27,6 +28,7 @@ import Control.Category
 import Data.Data as Data
 import Data.Monoid
 import Prelude hiding (id,(.))
+import Unsafe.Coerce
 
 -------------------------------------------------------------------------------
 -- Natural Transformations
@@ -62,6 +64,18 @@ type instance Fst '(a,b) = a
 -- | Extract the second type from a lifted tuple of types.
 type family Snd (p :: (a,b)) :: b
 type instance Snd '(a,b) = b
+
+-------------------------------------------------------------------------------
+-- Derpendent Types
+-------------------------------------------------------------------------------
+
+-- | Derpendency projection. (Work around)
+herp :: (Fst ij ~ i, Snd ij ~ j) => p '(i,j) -> p ij
+herp = unsafeCoerce
+
+-- | Derpendency injection. (Work around)
+derp :: (Fst ij ~ i, Snd ij ~ j) => p ij -> p '(i,j)
+derp = unsafeCoerce
 
 -------------------------------------------------------------------------------
 -- Atkey
