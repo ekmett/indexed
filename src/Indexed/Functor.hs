@@ -31,14 +31,17 @@ module Indexed.Functor
 
 import Indexed.Types
 
+infixl 4 >$<, >$
+infixl 1 ?>=, !>=, ?=>
+infixr 1 >~>, <~<, ~>~, ~<~
+
 -- | A 'Functor' between indexed categories.
-class IFunctor f where -- :: (i -> *) -> j -> *) where
+class IFunctor f where
   imap :: (a ~> b) -> f a ~> f b
 
   (>$) :: (forall i. b i) -> f a ~> f b
   b >$ f = imap (const b) f
 
-infixl 4 >$<, >$
 (>$<) :: IFunctor f => (a ~> b) -> f a ~> f b
 (>$<) = imap
 
@@ -79,11 +82,16 @@ f >~> g = ibind g . f
 (<~<) :: IMonad m => (b ~> m c) -> (a ~> m b) -> a ~> m c
 f <~< g = ibind f . g
 
+-- @
+-- m '?>=' 'ireturn' ≡ m
+-- 'ireturn' a '?>=' f ≡ f a
+-- (m '?>=' f) '?>=' g ≡ m '?>=' \x -> f x '?>=' g
+-- @
 (?>=) :: IMonad m => m a i -> (a ~> m b) -> m b i
 m ?>= f = ibind f m
 
-(!>=) :: IMonad (m :: (k -> *) -> k -> *) => m (At a j) i -> (a -> m b j) -> m b i
-m !>= f = m ?>= \ (At a :: At a j i) -> f a
+(!>=) :: IMonad (m :: (x -> *) -> x -> *) => m (At a j) i -> (a -> m b j) -> m b i
+m !>= f = m ?>= \ (At a) -> f a
 
 ireturnAt :: IMonad m => a -> m (At a i) i
 ireturnAt a = ireturn (At a)
@@ -107,8 +115,8 @@ f ~<~ g = f . iextend g
 (?=>) :: IComonad w => w a i -> (w a ~> b) -> w b i
 w ?=> f = iextend f w
 
--- (!=>) :: forall w b a i j. IComonad (w :: (k -> *) -> k -> *) => w a i -> (w a j -> b) -> w (At b j) i
--- w !=> f = w ?=> \ a -> At (f a)
+-- (!=>) :: IComonad w => w a i -> (w a j -> b) -> w (At b j) i
+-- w !=> f = w ?=> \ u -> At (f u)
 
 iextractAt :: IComonad w => w (At a i) i -> a
 iextractAt = key . iextract
