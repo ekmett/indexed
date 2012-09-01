@@ -9,17 +9,20 @@
 module Indexed.Monad.Free
   ( Church(..)
   , Free(..)
+  , improve
+  , IMonadFree(..)
   ) where
 
+import Control.Applicative
 import Indexed.Types
 import Indexed.Functor
-import Indexed.Applicative
-import Indexed.Monad
+import Indexed.Foldable
+import Indexed.Traversable
 
-class IMonad m => IMonadFree (f :: (i -> *) -> i -> *) (m :: ((i -> *) -> i -> *) -> (i -> *) -> i -> *) | m -> f i where
+class IMonad m => IMonadFree f m | m -> f where
   ifree :: f (m a) ~> m a
 
-data Free f a i where -- :: ((i -> *) -> i -> *) -> (i -> *) -> i -> *
+data Free f a i where
   Return :: a i -> Free f a i
   Free   :: f (Free f a) i -> Free f a i
 
@@ -28,33 +31,48 @@ instance IFunctor f => IFunctor (Free f) where
   imap f (Free as)  = Free (imap (imap f) as)
 
 instance IFunctor f => IApplicative (Free f) where
-  ipure = ireturnAt
-  (>*<) = iap
+  ireturn = Return
+
+instance IFoldable f => IFoldable (Free f) where
+  ifoldMap f (Return a) = f a
+  ifoldMap f (Free as) = ifoldMap (ifoldMap f) as
+
+instance ITraversable f => ITraversable (Free f) where
+  itraverse f (Return a) = Return <$> f a
+  itraverse f (Free as)  = Free <$> itraverse (itraverse f) as
 
 instance IFunctor f => IMonad (Free f) where
-  ireturn = Return
   ibind f (Return a) = f a
   ibind f (Free as) = Free (imap (ibind f) as)
 
 instance IFunctor f => IMonadFree f (Free f) where
   ifree = Free
 
--- | Free (Coyoneda f)
-newtype Church
-  (f :: (k -> *) -> k -> *)
-  (a :: k -> *)
-  (i :: k) = Church { runChurch :: forall (r :: k -> *). (a ~> r) -> (f r ~> r) -> r i }
+-- | A CPS'd Free Monad, Church-encoded.
+newtype Church f a i = Church { runChurch :: forall r. (a ~> r) -> (f r ~> r) -> r i }
 
 instance IFunctor (Church f) where
-  imap f (Church m) = Church $ \kp -> m (kp . f)
+  imap f m = Church $ \kp -> runChurch m (kp . f)
+
+instance IFoldable f => IFoldable (Church f) where
+  ifoldMap f m = lower (runChurch m (Lift . f) (Lift . ifoldMap lower))
+
+instance ITraversable f => ITraversable (Church f) where
+  itraverse f m = unbox (runChurch m (\a -> Box (ireturn <$> f a)) (Box . fmap ifree . itraverse unbox))
 
 instance IApplicative (Church f) where
-  ipure = ireturnAt
-  (>*<) = iap
+  ireturn a = Church $ \k _ -> k a
 
 instance IMonad (Church f) where
-  ireturn a = Church $ \k _ -> k a
-  ibind f (Church m) = Church $ \k kf -> m (\a -> runChurch (f a) k kf) kf
+  ibind f m = Church $ \k kf -> runChurch m (\a -> runChurch (f a) k kf) kf
 
 instance IFunctor f => IMonadFree f (Church f) where
   ifree as = Church $ \k kf -> kf (imap (\ m -> runChurch m k kf) as)
+
+-- | Go 'Free'.
+improve :: Church f a ~> Free f a
+improve m = runChurch m Return Free
+
+-- helpers for folding and traversing
+newtype Lift a i = Lift { lower :: a }
+newtype Box f a i = Box { unbox :: f (a i) }

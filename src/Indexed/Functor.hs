@@ -10,9 +10,9 @@
 
 module Indexed.Functor
   ( IFunctor(..)
-  , (>$<)
+  , (/$/)
   , imapAt
---  , IApplicative(..)
+  , IApplicative(..)
   , IMonad(..)
   , (>~>)
   , (<~<)
@@ -31,7 +31,7 @@ module Indexed.Functor
 
 import Indexed.Types
 
-infixl 4 >$<, >$
+infixl 4 /$/, /$, /*/, /*, */
 infixl 1 ?>=, !>=, ?=>
 infixr 1 >~>, <~<, ~>~, ~<~
 
@@ -39,37 +39,33 @@ infixr 1 >~>, <~<, ~>~, ~<~
 class IFunctor f where
   imap :: (a ~> b) -> f a ~> f b
 
-  (>$) :: (forall i. b i) -> f a ~> f b
-  b >$ f = imap (const b) f
+  (/$) :: (forall i. b i) -> f a ~> f b
+  b /$ f = imap (const b) f
 
-(>$<) :: IFunctor f => (a ~> b) -> f a ~> f b
-(>$<) = imap
+(/$/) :: IFunctor f => (a ~> b) -> f a ~> f b
+(/$/) = imap
 
 imapAt :: IFunctor f => (a -> b) -> f (At a k) ~> f (At b k)
 imapAt f = imap (\(At a) -> At (f a))
 {-# INLINE imapAt #-}
 
-{-
-infixl 4 >*<, >*, *<
+class IFunctor f => IApplicative f where
+  ireturn :: a ~> f a
 
-class IFunctor f => IApplicative (f :: (k -> *) -> k -> *) | f -> k where
-  ipure :: a -> f (At a i) i
- -- default ipure :: IMonad f => a -> f (At a i) i
- -- ipure = ireturnAt
+  (/*/) :: f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
+  default (/*/) :: IMonad f => f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
+  mf /*/ ma = mf !>= \f -> ma !>= \a -> ireturnAt (f a)
 
-  (>*<) :: f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
-  default (>*<) :: IMonad f => f (At (a -> b) j) i -> f (At a k) j -> f (At b k) i
-  mf >*< ma = mf !>= \f -> ma !>= \a -> ireturnAt (f a)
+  (/*) :: f (At a j) i -> f (At b k) j -> f (At a k) i
+  ma /* mb = imapAt const ma /*/ mb
 
-  (>*) :: f (At a j) i -> f (At b k) j -> f (At a k) i
-  ma >* mb = imapAt const ma >*< mb
+  (*/) :: f (At a j) i -> f (At b k) j -> f (At b k) i
+  ma */ mb = imapAt (const id) ma /*/ mb
 
-  (*<) :: f (At a j) i -> f (At b k) j -> f (At b k) i
-  ma *< mb = imapAt (const id) ma >*< mb
--}
+ireturnAt :: IApplicative m => a -> m (At a i) i
+ireturnAt a = ireturn (At a)
 
-class IFunctor m => IMonad m where
-  ireturn :: a ~> m a
+class IApplicative m => IMonad m where
   ibind   :: (a ~> m b) -> m a ~> m b
   ijoin   :: m (m a) ~> m a
 
@@ -92,9 +88,6 @@ m ?>= f = ibind f m
 
 (!>=) :: IMonad (m :: (x -> *) -> x -> *) => m (At a j) i -> (a -> m b j) -> m b i
 m !>= f = m ?>= \ (At a) -> f a
-
-ireturnAt :: IMonad m => a -> m (At a i) i
-ireturnAt a = ireturn (At a)
 
 iliftM :: IMonad m => (a ~> b) -> m a ~> m b
 iliftM f = ibind (ireturn . f)

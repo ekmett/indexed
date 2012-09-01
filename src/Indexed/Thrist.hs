@@ -9,12 +9,13 @@ module Indexed.Thrist
   , Unitary
   ) where
 
+import Control.Applicative
+import Data.Monoid
 import Indexed.Functor
 import Indexed.Monoid
 import Indexed.Foldable
 import Indexed.Traversable
 import Indexed.Types
-import Unsafe.Coerce
 
 infixr 5 :-
 
@@ -30,10 +31,10 @@ instance IFunctor Thrist where
 Nil       +++ bs = bs
 (a :- as) +++ bs = a :- (as +++ bs)
 
--- instance IApplicative Thrist
+instance IApplicative Thrist where
+  ireturn a = herp (derp a :- Nil)
 
 instance IMonad Thrist where
-  ireturn a = herp (derp a :- Nil)
   ibind _ Nil = Nil
   ibind f (a :- as) = herp (derp (f a) +++ derp (ibind f as))
 
@@ -46,9 +47,13 @@ instance IMonoid (Thrist a) where
   as >< bs = herp (derp as +++ derp bs)
 
 instance IFoldable Thrist where
-  ifoldMap _ Nil = imempty
-  ifoldMap f (a :- as) = herp (derp (f a) >< derp (ifoldMap f as))
+  ifoldMap _ Nil = mempty
+  ifoldMap f (a :- as) = f a <> ifoldMap f as
+
+instance IIFoldable Thrist where
+  iifoldMap _ Nil = imempty
+  iifoldMap f (a :- as) = herp (derp (f a) >< derp (iifoldMap f as))
 
 instance ITraversable Thrist where
-  imapM _ Nil = ireturn Nil
-  -- imapM f (a :- as) = f (herp a) ?>= \b -> undefined -- imapM f as ?>= \bs -> ireturn (b :- bs)
+  itraverse _ Nil = pure Nil
+  itraverse f (a :- as) = (:-) <$> f a <*> itraverse f as
