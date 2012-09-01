@@ -11,6 +11,9 @@ module Indexed.Types
   -- * Natural Transformations
     (~>)()
   , (:~>)(Nat,($$))
+  -- * Limits
+  , Lim
+  , Limit
   -- * Product Kind Projections
   , Fst, Snd
   , herp, derp
@@ -36,7 +39,7 @@ import Unsafe.Coerce
 
 infixr 0 ~>
 -- | A natural transformation from @f@ to @g@
-type f ~> g = forall a. f a -> g a
+type f ~> g = forall x. f x -> g x
 
 infixr 0 :~>, $$
 -- | A natural transformation suitable for storing in a container.
@@ -52,6 +55,13 @@ instance (Typeable1 f, Typeable1 g) => Typeable (f :~> g) where
 natTyCon :: TyCon
 natTyCon = mkTyCon3 "indexed" "Indexed.Types" "(:~>)"
 {-# NOINLINE natTyCon #-}
+
+-- | A limit.
+type Lim f = forall x. f x
+
+-- | A limit suitable for storing in a container.
+newtype Limit f = Limit { unlimit :: Lim f }
+
 
 -------------------------------------------------------------------------------
 -- Product Kind Projections
