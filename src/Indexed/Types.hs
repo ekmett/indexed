@@ -20,6 +20,9 @@ module Indexed.Types
   -- * Atkey
   , At(At), key
   , Atkey
+  -- * Coatkey
+  , Coat(Coat), uncoat
+  , Coatkey
   -- * Type Equality
   , (==)(Refl)
   , symm
@@ -61,7 +64,6 @@ type Lim f = forall x. f x
 
 -- | A limit suitable for storing in a container.
 newtype Limit f = Limit { unlimit :: Lim f }
-
 
 -------------------------------------------------------------------------------
 -- Product Kind Projections
@@ -147,6 +149,63 @@ atConstr = mkConstr atDataType "At" [] Data.Prefix
 atDataType :: DataType
 atDataType = mkDataType "Indexed.Types.At" [atConstr]
 {-# NOINLINE atDataType #-}
+
+-------------------------------------------------------------------------------
+-- Co-At
+-------------------------------------------------------------------------------
+
+newtype Coat a i j = Coat ((i ~ j) => a)
+
+instance (Show a, i ~ j) => Show (Coat a i j) where
+  showsPrec d (Coat a) = showParen (d > 10) $
+    showString "Coat " . showsPrec 11 a
+
+instance Read a => Read (Coat a i j) where
+  readsPrec d = readParen (d > 10) $ \r -> do
+    ("Coat", s) <- lex r
+    (k :: a, t) <- readsPrec 11 s
+    return (Coat k, t)
+
+instance (Eq a, i ~ j) => Eq (Coat a i j) where
+  Coat m == Coat n = m == n
+
+instance (Ord a, i ~ j) => Ord (Coat a i j) where
+  Coat m `compare` Coat n = compare m n
+
+instance Monoid m => Monoid (Coat m i j) where
+  mempty      = Coat mempty
+  mappend m n = Coat (case m of
+    Coat a -> case n of
+      Coat b -> mappend a b)
+
+uncoat :: Coat a i i -> a
+uncoat (Coat a) = a
+
+-- | Type alias for indexed monads, functors, etc. in Bob Atkey's style.
+type Coatkey f i j a = f (Coat a j) i
+
+instance Typeable3 Coat where
+  typeOf3 _ = mkTyConApp coatTyCon []
+
+coatTyCon :: TyCon
+coatTyCon = mkTyCon3 "indexed" "Indexed.Types" "Coat"
+{-# NOINLINE coatTyCon #-}
+
+instance (Data a, Typeable i, i ~ j) => Data (Coat a i j) where
+  gfoldl f z (Coat a) = z (\x -> Coat x) `f` a
+  toConstr _ = coatConstr
+  gunfold k z c = case constrIndex c of
+    1 -> k (z (\(x :: a) -> Coat x))
+    _ -> error "gunfold"
+  dataTypeOf _ = coatDataType
+
+coatConstr :: Constr
+coatConstr = mkConstr coatDataType "Coat" [] Data.Prefix
+{-# NOINLINE coatConstr #-}
+
+coatDataType :: DataType
+coatDataType = mkDataType "Indexed.Types.Coat" [coatConstr]
+{-# NOINLINE coatDataType #-}
 
 -------------------------------------------------------------------------------
 -- Type Equality

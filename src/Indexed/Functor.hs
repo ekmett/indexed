@@ -12,6 +12,7 @@ module Indexed.Functor
   ( IFunctor(..)
   , (/$/)
   , imapAt
+  , imapCoat
   , IApplicative(..)
   , IMonad(..)
   , (>~>)
@@ -20,12 +21,14 @@ module Indexed.Functor
   , (!>=)
   , iliftM
   , ireturnAt
+  , ireturnCoat
   , IComonad(..)
   , (~>~)
   , (~<~)
   , (?=>)
---  , (!=>)
+  , (!=>)
   , iextractAt
+  , iextractCoat
   , iliftW
   ) where
 
@@ -49,6 +52,10 @@ imapAt :: IFunctor f => (a -> b) -> f (At a k) ~> f (At b k)
 imapAt f = imap (\(At a) -> At (f a))
 {-# INLINE imapAt #-}
 
+imapCoat :: IFunctor f => (a -> b) -> f (Coat a k) ~> f (Coat b k)
+imapCoat f = imap $ \ c -> Coat $ case c of Coat a -> f a
+{-# INLINE imapCoat #-}
+
 class IFunctor f => IApplicative f where
   ireturn :: a ~> f a
 
@@ -64,6 +71,9 @@ class IFunctor f => IApplicative f where
 
 ireturnAt :: IApplicative m => a -> m (At a i) i
 ireturnAt a = ireturn (At a)
+
+ireturnCoat :: IApplicative m => a -> m (Coat a i) i
+ireturnCoat a = ireturn (Coat a)
 
 class IApplicative m => IMonad m where
   ibind   :: (a ~> m b) -> m a ~> m b
@@ -88,8 +98,6 @@ m ?>= f = ibind f m
 
 (!>=) :: IMonad (m :: (x -> *) -> x -> *) => m (At a j) i -> (a -> m b j) -> m b i
 m !>= f = m ?>= \ (At a) -> f a
-  -- f' :: At a j x -> m b j
-  -- f' :: At a j x -> m b x
 
 
 iliftM :: IMonad m => (a ~> b) -> m a ~> m b
@@ -98,7 +106,6 @@ iliftM f = ibind (ireturn . f)
 class IFunctor w => IComonad w where
   iextract :: w a ~> a
   iextend :: (w a ~> b) -> w a ~> w b
-  -- iextend :: (w a j -> b j) -> w a ~> w b
   iduplicate :: w a ~> w (w a)
   iduplicate = iextend id
   iextend f = imap f . iduplicate
@@ -109,17 +116,22 @@ f ~>~ g = g . iextend f
 (~<~) :: IComonad w => (w b ~> c) -> (w a ~> b) -> w a ~> c
 f ~<~ g = f . iextend g
 
+-- @
+-- w '?=>' 'iextract' ≡ w
+-- 'iextract' (w '?=>' f) ≡ f w
+-- (w '?=>' f) '?=>' g ≡ w '?=>' \x -> f (x '?=>' g)
+-- @
 (?=>) :: IComonad w => w a i -> (w a ~> b) -> w b i
 w ?=> f = iextend f w
 
--- (!?=>) :: IComonad w => w a i -> (w a j -> b j) -> w b i
--- (!?=>) = undefined
-
--- (!=>) :: IComonad w => w a i -> (w a j -> b) -> w (At b j) i
--- w !=> f = w !?=> \u -> At (f u)
+(!=>) :: IComonad w => w a i -> (w a j -> b) -> w (Coat b j) i
+w !=> f = w ?=> \u -> Coat (f u)
 
 iextractAt :: IComonad w => w (At a i) i -> a
 iextractAt = key . iextract
+
+iextractCoat :: IComonad w => w (Coat a i) i -> a
+iextractCoat = uncoat . iextract
 
 iliftW :: IComonad w => (a ~> b) -> w a ~> w b
 iliftW f = iextend (f . iextract)
