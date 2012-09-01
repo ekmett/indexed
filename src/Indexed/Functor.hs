@@ -88,6 +88,9 @@ m ?>= f = ibind f m
 
 (!>=) :: IMonad (m :: (x -> *) -> x -> *) => m (At a j) i -> (a -> m b j) -> m b i
 m !>= f = m ?>= \ (At a) -> f a
+  -- f' :: At a j x -> m b j
+  -- f' :: At a j x -> m b x
+
 
 iliftM :: IMonad m => (a ~> b) -> m a ~> m b
 iliftM f = ibind (ireturn . f)
@@ -95,6 +98,7 @@ iliftM f = ibind (ireturn . f)
 class IFunctor w => IComonad w where
   iextract :: w a ~> a
   iextend :: (w a ~> b) -> w a ~> w b
+  -- iextend :: (w a j -> b j) -> w a ~> w b
   iduplicate :: w a ~> w (w a)
   iduplicate = iextend id
   iextend f = imap f . iduplicate
@@ -108,8 +112,11 @@ f ~<~ g = f . iextend g
 (?=>) :: IComonad w => w a i -> (w a ~> b) -> w b i
 w ?=> f = iextend f w
 
+-- (!?=>) :: IComonad w => w a i -> (w a j -> b j) -> w b i
+-- (!?=>) = undefined
+
 -- (!=>) :: IComonad w => w a i -> (w a j -> b) -> w (At b j) i
--- w !=> f = w ?=> \ u -> At (f u)
+-- w !=> f = w !?=> \u -> At (f u)
 
 iextractAt :: IComonad w => w (At a i) i -> a
 iextractAt = key . iextract
