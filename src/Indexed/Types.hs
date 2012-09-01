@@ -13,7 +13,7 @@ module Indexed.Types
   , (:~>)(Nat,($$))
   -- * Limits
   , Lim
-  , Limit
+  , Limit(..)
   -- * Product Kind Projections
   , Fst, Snd
   , herp, derp
