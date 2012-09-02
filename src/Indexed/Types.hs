@@ -60,7 +60,7 @@ natTyCon = mkTyCon3 "indexed" "Indexed.Types" "(:~>)"
 {-# NOINLINE natTyCon #-}
 
 -- | A limit.
-type Lim f = forall x. f x
+type Lim (f :: i -> *) = forall (x :: i). f x
 
 -- | A limit suitable for storing in a container.
 newtype Limit f = Limit { unlimit :: Lim f }
