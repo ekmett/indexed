@@ -48,7 +48,7 @@ infixr 0 :~>, $$
 -- | A natural transformation suitable for storing in a container.
 newtype f :~> g = Nat { ($$) :: f ~> g }
 
-instance (f ~ g) => Monoid (f :~> g) where
+instance f ~ g => Monoid (f :~> g) where
   mempty = Nat id
   mappend (Nat f) (Nat g) = Nat (f . g)
 
@@ -154,7 +154,7 @@ atDataType = mkDataType "Indexed.Types.At" [atConstr]
 -- Co-At
 -------------------------------------------------------------------------------
 
-newtype Coat a i j = Coat ((i ~ j) => a)
+newtype Coat a i j = Coat (i ~ j => a)
 
 instance (Show a, i ~ j) => Show (Coat a i j) where
   showsPrec d (Coat a) = showParen (d > 10) $
@@ -234,10 +234,10 @@ instance Eq (a == b) where
 instance Ord (a == b) where
   Refl `compare` Refl = EQ
 
-instance (a ~ b) => Read (a == b) where
+instance a ~ b => Read (a == b) where
   readsPrec d = readParen (d > 10) (\r -> [(Refl,s) | ("Refl",s) <- lex r ])
 
-instance (a ~ b) => Monoid (a == b) where
+instance a ~ b => Monoid (a == b) where
   mempty = Refl
   mappend Refl Refl = Refl
 
