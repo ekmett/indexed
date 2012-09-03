@@ -9,7 +9,6 @@
 module Indexed.Comonad.Store
   ( Store(..)
   , IComonadStore(..)
-  , Stored(..)
   ) where
 
 import Indexed.Types
