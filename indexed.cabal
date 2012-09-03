@@ -36,6 +36,7 @@ library
     Indexed.Coproduct
     Indexed.Foldable
     Indexed.Functor
+    Indexed.Group
     Indexed.Monad.Free
     Indexed.Monoid
     Indexed.Product
