@@ -72,7 +72,7 @@ class IFunctor f => IApplicative f where
 ireturnAt :: IApplicative m => a -> m (At a i) i
 ireturnAt a = ireturn (At a)
 
-ireturnCoat :: IApplicative m => a -> m (Coat a i) i
+ireturnCoat :: IApplicative m => a -> m (Coat a i) j
 ireturnCoat a = ireturn (Coat a)
 
 class IApplicative m => IMonad m where
@@ -127,7 +127,7 @@ w ?=> f = iextend f w
 (!=>) :: IComonad w => w a i -> (w a j -> b) -> w (Coat b j) i
 w !=> f = w ?=> \u -> Coat (f u)
 
-iextractAt :: IComonad w => w (At a i) i -> a
+iextractAt :: IComonad w => w (At a i) j -> a
 iextractAt = key . iextract
 
 iextractCoat :: IComonad w => w (Coat a i) i -> a
