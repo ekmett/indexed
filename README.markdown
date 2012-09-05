@@ -3,7 +3,7 @@ Indexed
 
 This package is an exploration of the new type system features in GHC 7.6.
 
-It includes an extended version of Conor McBride's Functional Pearl, /Kleisli arrows of outrageous fortune/
+It includes an extended version of Conor McBride's Functional Pearl, *Kleisli arrows of outrageous fortune*
 using the new type system features of GHC, rather than SHE.
 
 <https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf>
