@@ -2,6 +2,17 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Product
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Products of indexed functors
+-----------------------------------------------------------------------------
 module Indexed.Product
   ( (*)(..)
   , ifst
@@ -16,7 +27,7 @@ import Indexed.Foldable
 import Indexed.Traversable
 import Indexed.Monoid
 
--- | Product
+-- | Indexed functor product
 data (*) :: ((x -> *) -> y -> *) -> ((x -> *) -> y -> *) -> (x -> *) -> y -> * where
   (:*) :: f a i -> g a i -> (f * g) a i
 

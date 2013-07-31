@@ -1,5 +1,16 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TypeOperators #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Coproduct
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Indexed functor coproducts
+-----------------------------------------------------------------------------
 module Indexed.Coproduct
   ( (+)(InL,InR)
   ) where
@@ -11,6 +22,7 @@ import Indexed.Traversable
 
 infixr 6 +
 
+-- | The coproduct of two indexed functors is an indexed functor.
 data (f + g) a i
   = InL (f a i)
   | InR (g a i)

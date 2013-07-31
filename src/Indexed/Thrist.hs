@@ -3,6 +3,19 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TypeFamilies #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Thrist
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Thrists are lists parameterized to form an indexed path.
+--
+-- <http://omega.googlecode.com/files/Thrist-draft-2011-11-20.pdf>
+-----------------------------------------------------------------------------
 module Indexed.Thrist
   ( Thrist(..)
   , List
@@ -40,6 +53,7 @@ instance IMonad Thrist where
 
 type Unitary k a = k (At a '( '(), '())) '( '(), '())
 
+-- | Lists are simply unindexed thrists.
 type List a = Unitary Thrist a
 
 instance IMonoid (Thrist a) where

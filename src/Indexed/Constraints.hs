@@ -6,6 +6,17 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Constraints
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- A poly-kinded 'Control.Category.Category' for 'Constraint' entailment.
+-----------------------------------------------------------------------------
 module Indexed.Constraints
   ( Dict(Dict)
   , (|-)(Sub)

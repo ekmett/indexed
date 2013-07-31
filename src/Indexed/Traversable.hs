@@ -3,12 +3,22 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FunctionalDependencies #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Traversable
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Indexed Traversable Functors
+-----------------------------------------------------------------------------
 module Indexed.Traversable
   ( ITraversable(..)
   ) where
 
 import Control.Applicative
--- import Indexed.Types
 import Indexed.Functor
 import Indexed.Foldable
 

@@ -2,10 +2,22 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE GADTs #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Monoid
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- poly-kinded categories and indexed monoids
+-----------------------------------------------------------------------------
 module Indexed.Monoid
   ( IMonoid(..)
   , Cat(..)
   , Morphism(..)
+  , WrappedIMonoid(..)
   ) where
 
 import Indexed.Types
@@ -34,6 +46,12 @@ infixr 6 ><
 class IMonoid m where
   (><) :: m '(i,j) -> m '(j,k) -> m '(i,k)
   imempty :: m '(i,i)
+
+newtype WrappedIMonoid m i j = WrapIMonoid { unwrapIMonoid :: m '(i,j) }
+
+instance IMonoid m => Cat (WrappedIMonoid m) where
+  idd = WrapIMonoid imempty
+  WrapIMonoid m % WrapIMonoid n = WrapIMonoid (m >< n)
 
 -- | A category is just an indexed monoid.
 newtype Morphism k i = Morphism (k (Fst i) (Snd i))

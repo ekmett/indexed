@@ -7,7 +7,17 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Functor
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Poly-kindedly indexed functors, monads, and comonads
+-----------------------------------------------------------------------------
 module Indexed.Functor
   ( IFunctor(..)
   , (/$/)

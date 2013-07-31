@@ -1,6 +1,17 @@
 {-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Indexed.Group
+-- Copyright   :  (C) 2012 Edward Kmett
+-- License     :  BSD-style (see the file LICENSE)
+-- Maintainer  :  Edward Kmett <ekmett@gmail.com>
+-- Stability   :  experimental
+-- Portability :  non-portable
+--
+-- Indexed groups and groupoids
+-----------------------------------------------------------------------------
 module Indexed.Group
   ( Group(..)
   , Groupoid(..)
