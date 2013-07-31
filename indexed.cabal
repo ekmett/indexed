@@ -27,7 +27,9 @@ source-repository head
   location: git://github.com/ekmett/indexed.git
 
 library
-  build-depends: base >= 4.6 && < 5
+  build-depends:
+    base >= 4.6 && < 5,
+    tagged >= 0.6 && < 1
 
   exposed-modules:
     Indexed.Command
@@ -37,9 +39,12 @@ library
     Indexed.Foldable
     Indexed.Functor
     Indexed.Group
+    Indexed.Map
     Indexed.Monad.Free
     Indexed.Monoid
+    Indexed.Ord
     Indexed.Product
+    Indexed.Show
     Indexed.Thrist
     Indexed.Traversable
     Indexed.Types

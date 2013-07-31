@@ -1,4 +1,5 @@
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE KindSignatures #-}
@@ -29,5 +30,7 @@ class IFoldable (f :: (x -> *) -> y -> *) where
 -- | An foldable indexed container that can be folded with an /indexed/ monoid (or category)
 class IFoldable f => IIFoldable f where
   iifoldMap :: IMonoid m => (a ~> m) -> f a ~> m
+{-
   ifoldCat :: Cat k => (forall i j. a '(i,j) -> k i j) -> f a '(x,y) -> k x y
-  ifoldCat f = unwrapIMonoid . iifoldMap (wrapIMonoid . f)
+  ifoldCat f = unwrapIMonoid . iifoldMap (WrapIMonoid . f)
+-}

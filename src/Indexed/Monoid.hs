@@ -25,7 +25,7 @@ import Data.Monoid
 
 infixr 9 %
 -- | Poly-kinded categories (should be in GHC 7.6.1 as Category)
-class Cat k where
+class Cat (k :: x -> x -> *) where
   idd :: k a a
   (%) :: k b c -> k a b -> k a c
 
@@ -42,6 +42,7 @@ instance Cat (:~>) where
   Nat f % Nat g = Nat (f . g)
 
 infixr 6 ><
+
 -- | A Category
 class IMonoid m where
   (><) :: m '(i,j) -> m '(j,k) -> m '(i,k)
@@ -49,9 +50,11 @@ class IMonoid m where
 
 newtype WrappedIMonoid m i j = WrapIMonoid { unwrapIMonoid :: m '(i,j) }
 
+{-
 instance IMonoid m => Cat (WrappedIMonoid m) where
   idd = WrapIMonoid imempty
   WrapIMonoid m % WrapIMonoid n = WrapIMonoid (m >< n)
+-}
 
 -- | A category is just an indexed monoid.
 newtype Morphism k i = Morphism (k (Fst i) (Snd i))
