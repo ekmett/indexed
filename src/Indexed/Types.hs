@@ -6,10 +6,11 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Indexed.Types
--- Copyright   :  (C) 2012 Edward Kmett
+-- Copyright   :  (C) 2012-2015 Edward Kmett
 -- License     :  BSD-style (see the file LICENSE)
 -- Maintainer  :  Edward Kmett <ekmett@gmail.com>
 -- Stability   :  experimental
@@ -35,15 +36,15 @@ module Indexed.Types
   , Coat(Coat), uncoat
   , Coatkey
   -- * Type Equality
-  , (==)(Refl)
-  , symm
-  -- * Type Equality
+  , module Data.Type.Equality
+  -- * Type Application
   , ($)()
   ) where
 
 import Control.Category
 import Data.Data as Data
 import Data.Monoid
+import Data.Type.Equality
 import Prelude hiding (id,(.))
 import Unsafe.Coerce
 
@@ -58,23 +59,18 @@ type f ~> g = forall x. f x -> g x
 infixr 0 :~>, $$
 -- | A natural transformation suitable for storing in a container.
 newtype f :~> g = Nat { ($$) :: f ~> g }
+  deriving Typeable
 
 instance f ~ g => Monoid (f :~> g) where
   mempty = Nat id
   mappend (Nat f) (Nat g) = Nat (f . g)
-
-instance (Typeable1 f, Typeable1 g) => Typeable (f :~> g) where
-  typeOf _ = mkTyConApp natTyCon [typeOf1 (undefined :: f a), typeOf1 (undefined :: g a)]
-
-natTyCon :: TyCon
-natTyCon = mkTyCon3 "indexed" "Indexed.Types" "(:~>)"
-{-# NOINLINE natTyCon #-}
 
 -- | A limit.
 type Lim (f :: i -> *) = forall (x :: i). f x
 
 -- | A limit suitable for storing in a container.
 newtype Limit f = Limit { unlimit :: Lim f }
+  deriving Typeable
 
 -------------------------------------------------------------------------------
 -- Product Kind Projections
@@ -92,20 +88,25 @@ type instance Snd '(a,b) = b
 -- Derpendent Types
 -------------------------------------------------------------------------------
 
--- | Derpendency projection. (Work around)
-herp :: (Fst ij ~ i, Snd ij ~ j) => p '(i,j) -> p ij
+-- | Derpendency projection. (Work around).
+--
+-- This is only truly legal on GHC 7.10+ where 'GHC.Prim.Any' has been demoted to a type family.
+herp :: p '(Fst ij,Snd ij) -> p ij
 herp = unsafeCoerce
 
 -- | Derpendency injection. (Work around)
-derp :: (Fst ij ~ i, Snd ij ~ j) => p ij -> p '(i,j)
+--
+-- This is only truly legal on GHC 7.10+ where 'GHC.Prim.Any' has been demoted to a type family.
+derp :: p ij -> p '(Fst ij,Snd ij)
 derp = unsafeCoerce
 
 -------------------------------------------------------------------------------
 -- Atkey
 -------------------------------------------------------------------------------
 
-data At :: * -> k -> k -> * where
+data At :: * -> k -> k -> * where 
   At :: a -> At a k k
+ deriving Typeable
 
 instance Show a => Show (At a i j) where
   showsPrec d (At a) = showParen (d > 10) $
@@ -138,13 +139,6 @@ instance (Monoid m, i ~ j) => Monoid (At m i j) where
 -- | Type alias for indexed monads, functors, etc. in Bob Atkey's style.
 type Atkey f i j a = f (At a j) i
 
-instance Typeable3 At where
-  typeOf3 _ = mkTyConApp atTyCon []
-
-atTyCon :: TyCon
-atTyCon = mkTyCon3 "indexed" "Indexed.Types" "At"
-{-# NOINLINE atTyCon #-}
-
 instance (Data a, Typeable i, i ~ j) => Data (At a i j) where
   gfoldl f z (At a) = z At `f` a
   toConstr _ = atConstr
@@ -166,6 +160,7 @@ atDataType = mkDataType "Indexed.Types.At" [atConstr]
 -------------------------------------------------------------------------------
 
 newtype Coat a i j = Coat (i ~ j => a)
+  deriving Typeable
 
 instance (Show a, i ~ j) => Show (Coat a i j) where
   showsPrec d (Coat a) = showParen (d > 10) $
@@ -195,13 +190,6 @@ uncoat (Coat a) = a
 -- | Type alias for indexed monads, functors, etc. in Bob Atkey's style.
 type Coatkey f i j a = f (Coat a j) i
 
-instance Typeable3 Coat where
-  typeOf3 _ = mkTyConApp coatTyCon []
-
-coatTyCon :: TyCon
-coatTyCon = mkTyCon3 "indexed" "Indexed.Types" "Coat"
-{-# NOINLINE coatTyCon #-}
-
 instance (Data a, Typeable i, i ~ j) => Data (Coat a i j) where
   gfoldl f z (Coat a) = z (\x -> Coat x) `f` a
   toConstr _ = coatConstr
@@ -219,69 +207,10 @@ coatDataType = mkDataType "Indexed.Types.Coat" [coatConstr]
 {-# NOINLINE coatDataType #-}
 
 -------------------------------------------------------------------------------
--- Type Equality
--------------------------------------------------------------------------------
-
-infix 4 ==
-
--- | A witness of type equality
-data a == b where
-  Refl :: a == a
-
-instance Category (==) where
-  id = Refl
-  Refl . Refl = Refl
-
--- | ('==') is symmetric.
-symm :: a == b -> b == a
-symm Refl = Refl
-
-instance Show (a == b) where
-  showsPrec _ Refl = showString "Refl"
-
-instance Eq (a == b) where
-  Refl == Refl = True
-
-instance Ord (a == b) where
-  Refl `compare` Refl = EQ
-
-instance a ~ b => Read (a == b) where
-  readsPrec d = readParen (d > 10) (\r -> [(Refl,s) | ("Refl",s) <- lex r ])
-
-instance a ~ b => Monoid (a == b) where
-  mempty = Refl
-  mappend Refl Refl = Refl
-
-instance Typeable2 (==) where
-  typeOf2 _ = mkTyConApp eqTyCon []
-
-eqTyCon :: TyCon
-eqTyCon = mkTyCon3 "kinds" "Type.Eq" "(==)"
-{-# NOINLINE eqTyCon #-}
-
-instance (Data a, a ~ b) => Data (a == b) where
-  gfoldl _ z Refl = z Refl
-  toConstr _ = reflConstr
-  gunfold _ z c = case constrIndex c of
-    1 -> z Refl
-    _ -> error "gunfold"
-  dataTypeOf _ = eqDataType
-  dataCast1 f = gcast1 f
-  dataCast2 f = gcast2 f
-
-reflConstr :: Constr
-reflConstr = mkConstr eqDataType "Refl" [] Data.Prefix
-{-# NOINLINE reflConstr #-}
-
-eqDataType :: DataType
-eqDataType = mkDataType "Type.Eq.(==)" [reflConstr]
-{-# NOINLINE eqDataType #-}
-
--------------------------------------------------------------------------------
 -- ($)
 -------------------------------------------------------------------------------
 
 infixr 0 $
--- | A type level version of @($)@, useful to avoid parentheses
+-- | A type level version of @('$')@, useful to avoid parentheses
 type ($) a = a
 

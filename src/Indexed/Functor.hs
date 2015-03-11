@@ -109,7 +109,6 @@ m ?>= f = ibind f m
 (!>=) :: IMonad (m :: (x -> *) -> x -> *) => m (At a j) i -> (a -> m b j) -> m b i
 m !>= f = m ?>= \ (At a) -> f a
 
-
 iliftM :: IMonad m => (a ~> b) -> m a ~> m b
 iliftM f = ibind (ireturn . f)
 

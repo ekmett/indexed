@@ -41,5 +41,5 @@ instance Groupoid k  => IGroup (Morphism k) where
 instance Group m => Groupoid (At m) where
   invert (At m) = At (inv m)
 
-instance Groupoid (==) where
+instance Groupoid (:~:) where
   invert Refl = Refl

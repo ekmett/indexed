@@ -22,8 +22,6 @@ import Control.Applicative
 import Indexed.Functor
 import Indexed.Foldable
 
--- | Traversable Functor (between indexed categories)
+-- | Indexed Traversable Functor
 class (IFunctor t, IFoldable t) => ITraversable t where
-  itraverse :: Applicative f => (forall (x :: j). a x -> f (b x)) -> t a y -> f (t b y)
-
--- TODO: A traversable endofunctor on an indexed category, where you can traverse it with an IApplicative or IMonad
+  itraverse :: Applicative f => (forall x. a x -> f (b x)) -> t a y -> f (t b y)

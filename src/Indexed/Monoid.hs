@@ -29,7 +29,7 @@ class Cat (k :: x -> x -> *) where
   idd :: k a a
   (%) :: k b c -> k a b -> k a c
 
-instance Cat (==) where
+instance Cat (:~:) where
   idd = Refl
   Refl % Refl = Refl
 

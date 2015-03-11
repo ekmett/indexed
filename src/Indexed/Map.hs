@@ -64,7 +64,7 @@ instance (IShow k, IShow v) => Show (IMap k v) where
     showString "fromList " . showsPrec 11 (toList m)
 
 toList :: IMap k v -> [KV k v]
-toList x = go x [] where
+toList x0 = go x0 [] where
   go !(Bin _ kx x l r) xs = go l (KV kx x : go r xs)
   go !Tip xs = xs
 {-# INLINEABLE toList #-}
